@@ -12,7 +12,7 @@ export default defineConfig({
   plugins: [react(), cssInjectedByJsPlugin()],
   build: {
     lib: {
-      entry: resolve(__dirname, "src/EmailSendertGridWrapper.jsx"),
+      entry: resolve(__dirname, "src/EmailSenderGridWrapper.jsx"),
       name: "Recruitly Email sender",
       fileName: (format) => `recruitly-edge-emailsendergrid.${format}.js`,
       formats: ["umd"],
