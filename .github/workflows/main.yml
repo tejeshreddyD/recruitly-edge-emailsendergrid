@@ -40,8 +40,8 @@ jobs:
 
       - name: Copy files to Google Cloud Storage
         run: |
-          cp dist/recruitly-edge-blacklistgrid.umd.js dist/recruitly-edge-blacklistgrid-umd-v${{ github.run_number }}.js        
-          gsutil cp dist/recruitly-edge-blacklistgrid-umd-v${{ github.run_number }}.js gs://recruitly-cdn/apps/recruitly-edge/
+          cp dist/recruitly-edge-emailsendergrid.umd.js dist/recruitly-edge-emailsendergrid-umd-v${{ github.run_number }}.js        
+          gsutil cp dist/recruitly-edge-emailsendergrid-umd-v${{ github.run_number }}.js gs://recruitly-cdn/apps/recruitly-edge/
 
       - name: Configure Git
         run: |
