@@ -1,14 +1,13 @@
 import { useEffect, useState } from "react";
-import { Button, Input, message, Popconfirm, Table, Typography } from "antd";
+import { Button, Input, message, Popconfirm, Table } from "antd";
 import PropTypes from "prop-types";
 
 import { CheckCircleOutlined, CloseCircleOutlined, DeleteOutlined } from "@ant-design/icons";
 
 import "./EmailSenderGridWrapper.css";
+import { Tag } from 'antd';
 
 const { Search } = Input;
-const { Text } = Typography;
-
 const EmailSenderGridWrapper = ({ apiServer, apiKey }) => {
   const [rowData, setRowData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -88,95 +87,50 @@ const EmailSenderGridWrapper = ({ apiServer, apiKey }) => {
       dataIndex: "fromName",
       key: "fromName",
       render: (text) => <span className="from-name-cell">{text}</span>,
-      filters: [...new Set(rowData.map((item) => item.fromName))].map((name) => ({
-        text: name,
-        value: name,
-      })),
-      onFilter: (value, record) => record.fromName === value,
     },
     {
       title: "From Email",
       dataIndex: "fromEmail",
       key: "fromEmail",
       render: (text) => <span className="from-email-cell">{text}</span>,
-      filters: [...new Set(rowData.map((item) => item.fromEmail))].map((email) => ({
-        text: email,
-        value: email,
-      })),
-      onFilter: (value, record) => record.fromEmail === value,
     },
     {
       title: "Reply To",
       dataIndex: "replyTo",
       key: "replyTo",
       render: (text) => <span className="reply-to-cell">{text}</span>,
-      filters: [...new Set(rowData.map((item) => item.replyTo))].map((replyTo) => ({
-        text: replyTo,
-        value: replyTo,
-      })),
-      onFilter: (value, record) => record.replyTo === value,
     },
     {
       title: "Created By",
       dataIndex: "createdBy",
       key: "createdBy",
       render: (text) => <span className="created-by-cell">{text}</span>,
-      filters: [...new Set(rowData.map((item) => item.createdBy))].map((createdBy) => ({
-        text: createdBy,
-        value: createdBy,
-      })),
-      onFilter: (value, record) => record.createdBy === value,
     },
     {
       title: "Created On",
       dataIndex: "createdOn",
       key: "createdOn",
       render: (text) => <span className="created-on-cell">{text}</span>,
-      filters: [...new Set(rowData.map((item) => item.createdOn))].map((createdOn) => ({
-        text: createdOn,
-        value: createdOn,
-      })),
-      onFilter: (value, record) => record.createdOn === value,
     },
     {
       title: "Domain Verified",
       dataIndex: "domainVerified",
       key: "domainVerified",
-      render: (verified) =>
-        verified ? (
-          <Text className="verified-text">
-            <CheckCircleOutlined /> VERIFIED
-          </Text>
-        ) : (
-          <Text className="not-verified-text">
-            <CloseCircleOutlined /> NOT VERIFIED
-          </Text>
-        ),
-      filters: [
-        { text: "Verified", value: true },
-        { text: "Not Verified", value: false },
-      ],
-      onFilter: (value, record) => record.domainVerified === value,
+      render: (verified) => verified ? (
+        <Tag bordered={false} icon={<CheckCircleOutlined />} color="darkgreen">VERIFIED</Tag>
+      ) : (
+        <Tag bordered={false} icon={<CloseCircleOutlined />} color="darkred">NOT VERIFIED</Tag>
+      ),
     },
     {
       title: "Verified",
       dataIndex: "verified",
       key: "verified",
-      render: (verified) =>
-        verified ? (
-          <Text className="verified-text">
-            <CheckCircleOutlined /> VERIFIED
-          </Text>
-        ) : (
-          <Text className="not-verified-text">
-            <CloseCircleOutlined /> NOT VERIFIED
-          </Text>
-        ),
-      filters: [
-        { text: "Verified", value: true },
-        { text: "Not Verified", value: false },
-      ],
-      onFilter: (value, record) => record.verified === value,
+      render: (verified) => verified ? (
+        <Tag bordered={false} icon={<CheckCircleOutlined />} color="darkgreen">VERIFIED</Tag>
+      ) : (
+        <Tag bordered={false} icon={<CloseCircleOutlined />} color="darkred">NOT VERIFIED</Tag>
+      ),
     },
     {
       title: "Action",
