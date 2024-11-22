@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { Button, Input, message, Popconfirm, Table } from "antd";
+import { Tag } from 'antd';
 import PropTypes from "prop-types";
 
 import { CheckCircleOutlined, CloseCircleOutlined, DeleteOutlined } from "@ant-design/icons";
 
 import "./EmailSenderGridWrapper.css";
-import { Tag } from 'antd';
 
 const { Search } = Input;
 const EmailSenderGridWrapper = ({ apiServer, apiKey }) => {
