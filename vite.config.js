@@ -14,7 +14,7 @@ export default defineConfig({
     lib: {
       entry: resolve(__dirname, "src/EmailSendertGridWrapper.jsx"),
       name: "Recruitly Email sender",
-      fileName: (format) => `recruitly-edge-emailsender.${format}.js`,
+      fileName: (format) => `recruitly-edge-emailsendergrid.${format}.js`,
       formats: ["umd"],
     },
     rollupOptions: {
