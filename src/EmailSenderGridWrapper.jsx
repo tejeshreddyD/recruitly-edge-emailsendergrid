@@ -1,5 +1,5 @@
 
-import { ConfigProvider, Image, Layout, Menu } from "antd";
+import { ConfigProvider } from "antd";
 
 import styleToken from "./styleToken.js";
 import EmailSenderGrid from "./EmailSenderGrid.jsx";
