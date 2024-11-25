@@ -162,12 +162,12 @@ const EmailSenderGrid = ({ apiServer, apiKey }) => {
           style={{ width: 300, marginRight: 10 }}
         />
       </div>
-      <Table
+      <Table bordered={true}
         columns={columns}
         dataSource={filteredData}
         loading={isLoading}
         pagination={{ pageSize: 10 }}
-        rowClassName={(record, index) => (index % 2 === 0 ? "table-row-light" : "table-row-dark")}
+        rowClassName={"table-row-light"}
       />
     </div>
   );
