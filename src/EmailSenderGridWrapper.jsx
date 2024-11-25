@@ -27,6 +27,6 @@ const EmailSenderGridWrapper = ({ apiServer, apiKey, edgeUtil, userId, tenantId 
   );
 };
 
-window.EmailBlacklistGrid = EmailSenderGridWithProvider;
+window.EmailSenderGrid = EmailSenderGridWithProvider;
 
 export default EmailSenderGridWrapper;
