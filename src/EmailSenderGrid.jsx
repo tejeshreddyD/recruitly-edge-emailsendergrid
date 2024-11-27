@@ -1,13 +1,12 @@
 import { useEffect, useState } from "react";
-import { Button, Input, message, Popconfirm, Table } from "antd";
+import { Button, Input, message, Popconfirm, Table, Tag } from "antd";
 import PropTypes from "prop-types";
-
 import { CheckCircleOutlined, CloseCircleOutlined, DeleteOutlined } from "@ant-design/icons";
 
 import "./styles.css";
-import { Tag } from 'antd';
 
 const { Search } = Input;
+
 const EmailSenderGrid = ({ apiServer, apiKey }) => {
   const [rowData, setRowData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -30,9 +29,15 @@ const EmailSenderGrid = ({ apiServer, apiKey }) => {
           fromEmail: item.fromEmail || "N/A",
           replyTo: item.replyToEmail || "N/A",
           createdBy: item.userName || "Unknown",
-          createdOn: item.createdOn ? new Date(item.createdOn).toLocaleDateString() : "N/A",
-          domainVerified: item.domainVerified !== undefined ? item.domainVerified : false,
-          verified: item.senderAuthorised !== undefined ? item.senderAuthorised : false, // Updated to take value from senderAuthorised
+          createdOn: item.createdOn
+            ? new Date(item.createdOn).toLocaleDateString()
+            : "N/A",
+          domainVerified:
+            item.domainVerified !== undefined ? item.domainVerified : false,
+          verified:
+            item.senderAuthorised !== undefined
+              ? item.senderAuthorised
+              : false, // Updated to take value from senderAuthorised
         }));
         setRowData(updatedData);
       } else {
@@ -49,7 +54,21 @@ const EmailSenderGrid = ({ apiServer, apiKey }) => {
   };
 
   useEffect(() => {
+
     fetchData();
+
+
+    const handleSenderUpdate = (event) => {
+      console.log("EDGE_SENDER_UPDATED event received:", event.detail);
+      fetchData();
+    };
+
+    window.addEventListener("EDGE_SENDER_UPDATED", handleSenderUpdate);
+
+
+    return () => {
+      window.removeEventListener("EDGE_SENDER_UPDATED", handleSenderUpdate);
+    };
   }, [apiServer, apiKey]);
 
   const handleDelete = async (id) => {
@@ -70,9 +89,10 @@ const EmailSenderGrid = ({ apiServer, apiKey }) => {
     setSearchText(e.target.value);
   };
 
-  const filteredData = rowData.filter((item) =>
-    item.fromName.toLowerCase().includes(searchText.toLowerCase()) ||
-    item.fromEmail.toLowerCase().includes(searchText.toLowerCase())
+  const filteredData = rowData.filter(
+    (item) =>
+      item.fromName.toLowerCase().includes(searchText.toLowerCase()) ||
+      item.fromEmail.toLowerCase().includes(searchText.toLowerCase())
   );
 
   const columns = [
@@ -116,21 +136,39 @@ const EmailSenderGrid = ({ apiServer, apiKey }) => {
       title: "Domain Verified",
       dataIndex: "domainVerified",
       key: "domainVerified",
-      render: (verified) => verified ? (
-        <Tag bordered={false} icon={<CheckCircleOutlined />} color="darkgreen">VERIFIED</Tag>
-      ) : (
-        <Tag bordered={false} icon={<CloseCircleOutlined />} color="darkred">NOT VERIFIED</Tag>
-      ),
+      render: (verified) =>
+        verified ? (
+          <Tag
+            bordered={false}
+            icon={<CheckCircleOutlined />}
+            color="darkgreen"
+          >
+            VERIFIED
+          </Tag>
+        ) : (
+          <Tag bordered={false} icon={<CloseCircleOutlined />} color="darkred">
+            NOT VERIFIED
+          </Tag>
+        ),
     },
     {
       title: "Verified",
       dataIndex: "verified",
       key: "verified",
-      render: (verified) => verified ? (
-        <Tag bordered={false} icon={<CheckCircleOutlined />} color="darkgreen">VERIFIED</Tag>
-      ) : (
-        <Tag bordered={false} icon={<CloseCircleOutlined />} color="darkred">NOT VERIFIED</Tag>
-      ),
+      render: (verified) =>
+        verified ? (
+          <Tag
+            bordered={false}
+            icon={<CheckCircleOutlined />}
+            color="darkgreen"
+          >
+            VERIFIED
+          </Tag>
+        ) : (
+          <Tag bordered={false} icon={<CloseCircleOutlined />} color="darkred">
+            NOT VERIFIED
+          </Tag>
+        ),
     },
     {
       title: "Action",
@@ -154,7 +192,14 @@ const EmailSenderGrid = ({ apiServer, apiKey }) => {
 
   return (
     <div style={{ padding: "20px" }}>
-      <div style={{ marginBottom: "20px", display: "flex", justifyContent: "flex-start", alignItems: "center" }}>
+      <div
+        style={{
+          marginBottom: "20px",
+          display: "flex",
+          justifyContent: "flex-start",
+          alignItems: "center",
+        }}
+      >
         <Search
           placeholder="Search..."
           allowClear
@@ -162,7 +207,8 @@ const EmailSenderGrid = ({ apiServer, apiKey }) => {
           style={{ width: 300, marginRight: 10 }}
         />
       </div>
-      <Table bordered={true}
+      <Table
+        bordered={true}
         columns={columns}
         dataSource={filteredData}
         loading={isLoading}
