@@ -11,7 +11,6 @@ const EmailSenderGrid = ({ apiServer, apiKey }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchText, setSearchText] = useState("");
 
-
   const fetchData = async () => {
     try {
       setIsLoading(true);
@@ -27,7 +26,8 @@ const EmailSenderGrid = ({ apiServer, apiKey }) => {
 
       if (result && result.data) {
         const updatedData = result.data.map((item) => ({
-          key: item.id,
+
+          id: item.id,
           fromName: item.fromName || "N/A",
           fromEmail: item.fromEmail || "N/A",
           replyTo: item.replyToEmail || "N/A",
@@ -63,13 +63,26 @@ const EmailSenderGrid = ({ apiServer, apiKey }) => {
     };
   }, [apiServer, apiKey]);
 
+  const handleEdit = async (sender) => {
+    try {
+      console.log("Sender object:", sender);
 
+      await window.EDGE_UTIL.senderAction({
+        actionCode: "EDIT_SENDER",
+        paramsObj: { sender: sender },
+      });
+      message.success(`Opened form to edit sender "${sender.fromName}".`);
+    } catch (error) {
+      console.error("Error opening sender form for editing:", error);
+      message.error(`Failed to open sender form for "${sender?.fromName || "Unknown"}".`);
+    }
+  };
 
   const handleDelete = async (sender) => {
     try {
       await window.EDGE_UTIL.senderAction({
         actionCode: "DELETE_SENDER",
-        paramsObj: { sender :sender},
+        paramsObj: { sender },
       });
       message.success(`Email sender "${sender.fromName}" successfully deleted.`);
       fetchData();
@@ -79,20 +92,10 @@ const EmailSenderGrid = ({ apiServer, apiKey }) => {
     }
   };
 
-
-
-
-
-
-
-
-
-
   const handleSearch = (e) => {
     setSearchText(e.target.value);
   };
 
-  // Filter data based on search text
   const filteredData = rowData.filter(
     (item) =>
       item.fromName.toLowerCase().includes(searchText.toLowerCase()) ||
@@ -102,14 +105,22 @@ const EmailSenderGrid = ({ apiServer, apiKey }) => {
   const columns = [
     {
       title: "#",
-      dataIndex: "key",
-      key: "key",
+      dataIndex: "id",
+      key: "id",
       render: (text, record, index) => index + 1,
     },
     {
       title: "From Name",
       dataIndex: "fromName",
       key: "fromName",
+      render: (text, record) => (
+        <span
+          style={{ color: "blue", cursor: "pointer" }}
+          onClick={() => handleEdit(record)}
+        >
+          {text}
+        </span>
+      ),
     },
     {
       title: "From Email",
@@ -167,7 +178,7 @@ const EmailSenderGrid = ({ apiServer, apiKey }) => {
       render: (text, record) => (
         <Popconfirm
           title="Confirm Delete"
-          onConfirm={() => handleDelete(record)} // Pass the entire sender object
+          onConfirm={() => handleDelete(record)}
           okText="Yes"
           cancelText="No"
         >
