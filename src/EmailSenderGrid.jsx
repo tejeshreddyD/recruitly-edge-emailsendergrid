@@ -26,7 +26,7 @@ const EmailSenderGrid = ({ apiServer, apiKey }) => {
 
       if (result && result.data) {
         const updatedData = result.data.map((item) => ({
-
+key:item.id,
           id: item.id,
           fromName: item.fromName || "N/A",
           fromEmail: item.fromEmail || "N/A",
