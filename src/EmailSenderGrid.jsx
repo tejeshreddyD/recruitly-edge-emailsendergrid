@@ -26,7 +26,7 @@ const EmailSenderGrid = ({ apiServer, apiKey }) => {
 
       if (result && result.data) {
         const updatedData = result.data.map((item) => ({
-key:item.id,
+          key:item.id,
           id: item.id,
           fromName: item.fromName || "N/A",
           fromEmail: item.fromEmail || "N/A",
@@ -82,7 +82,7 @@ key:item.id,
     try {
       await window.EDGE_UTIL.senderAction({
         actionCode: "DELETE_SENDER",
-        paramsObj: { sender },
+        paramsObj: { sender : sender },
       });
       message.success(`Email sender "${sender.fromName}" successfully deleted.`);
       fetchData();
