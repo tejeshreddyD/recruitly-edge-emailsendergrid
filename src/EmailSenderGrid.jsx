@@ -71,10 +71,9 @@ const EmailSenderGrid = ({ apiServer, apiKey }) => {
         actionCode: "EDIT_SENDER",
         paramsObj: { sender: sender },
       });
-      message.success(`Opened form to edit sender "${sender.fromName}".`);
+      fetchData();
     } catch (error) {
       console.error("Error opening sender form for editing:", error);
-      message.error(`Failed to open sender form for "${sender?.fromName || "Unknown"}".`);
     }
   };
 
@@ -85,11 +84,9 @@ const EmailSenderGrid = ({ apiServer, apiKey }) => {
         actionCode: "DELETE_SENDER",
         paramsObj: { sender : sender },
       });
-      message.success(`Email sender "${sender.fromName}" successfully deleted.`);
       fetchData();
     } catch (error) {
       console.error("Error deleting sender:", error);
-      message.error(`Failed to delete email sender: "${sender?.fromName || "Unknown"}"`);
     }
   };
 
