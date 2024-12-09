@@ -71,7 +71,6 @@ const EmailSenderGrid = ({ apiServer, apiKey }) => {
         actionCode: "EDIT_SENDER",
         paramsObj: { sender: sender },
       });
-      fetchData();
     } catch (error) {
       console.error("Error opening sender form for editing:", error);
     }
@@ -84,7 +83,6 @@ const EmailSenderGrid = ({ apiServer, apiKey }) => {
         actionCode: "DELETE_SENDER",
         paramsObj: { sender : sender },
       });
-      fetchData();
     } catch (error) {
       console.error("Error deleting sender:", error);
     }
