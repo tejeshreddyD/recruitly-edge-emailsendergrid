@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Button, Input, message, Popconfirm, Table, Tag } from "antd";
 import { CheckCircleOutlined, CloseCircleOutlined, DeleteOutlined } from "@ant-design/icons";
 import PropTypes from "prop-types";
@@ -80,6 +80,7 @@ const EmailSenderGrid = ({ apiServer, apiKey }) => {
 
   const handleDelete = async (sender) => {
     try {
+      console.log("Sender object:", sender);
       await window.EDGE_UTIL.senderAction({
         actionCode: "DELETE_SENDER",
         paramsObj: { sender : sender },
@@ -148,12 +149,12 @@ const EmailSenderGrid = ({ apiServer, apiKey }) => {
       key: "domainVerified",
       render: (verified) =>
         verified ? (
-          <Tag icon={<CheckCircleOutlined />} color="darkgreen">
-            VERIFIED
+          <Tag icon={<CheckCircleOutlined />} style={{borderRadius:'15px'}} color="#11a75c">
+            Verified
           </Tag>
         ) : (
-          <Tag icon={<CloseCircleOutlined />} color="darkred">
-            NOT VERIFIED
+          <Tag icon={<CloseCircleOutlined />} style={{borderRadius:'15px'}} color="#ab0a00">
+            Not Verified
           </Tag>
         ),
     },
@@ -163,12 +164,10 @@ const EmailSenderGrid = ({ apiServer, apiKey }) => {
       key: "verified",
       render: (verified) =>
         verified ? (
-          <Tag icon={<CheckCircleOutlined />} color="darkgreen">
-            VERIFIED
+          <Tag icon={<CheckCircleOutlined />} style={{borderRadius:'15px'}} color="#11a75c">Verified
           </Tag>
         ) : (
-          <Tag icon={<CloseCircleOutlined />} color="darkred">
-            NOT VERIFIED
+          <Tag icon={<CloseCircleOutlined />} style={{borderRadius:'15px'}} color="#ab0a00">Not Verified
           </Tag>
         ),
     },
@@ -176,19 +175,17 @@ const EmailSenderGrid = ({ apiServer, apiKey }) => {
       title: "Action",
       key: "action",
       render: (text, record) => (
-        <Popconfirm
-          title="Confirm Delete"
-          onConfirm={() => handleDelete(record)}
-          okText="Yes"
-          cancelText="No"
+        <Button
+          size={"small"}
+          icon={<DeleteOutlined />}
+          danger
+          onClick={() => handleDelete(record)}
         >
-          <Button icon={<DeleteOutlined />} danger>
-            Delete
-          </Button>
-        </Popconfirm>
+          Delete
+        </Button>
       ),
     },
-  ];
+    ]
 
   return (
     <div style={{ padding: "20px" }}>
