@@ -1,7 +1,11 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { Button, Input, message, Popconfirm, Table, Tag } from "antd";
+import React, { useEffect, useMemo, useState, useRef } from "react";
+import { Button, Input, message } from "antd";
 import { CheckCircleOutlined, CloseCircleOutlined, DeleteOutlined } from "@ant-design/icons";
 import PropTypes from "prop-types";
+import { AgGridReact } from "ag-grid-react";
+import "ag-grid-community/styles/ag-grid.css";
+import "ag-grid-community/styles/ag-theme-quartz.css";
+
 import "./styles.css";
 
 const { Search } = Input;
@@ -10,6 +14,27 @@ const EmailSenderGrid = ({ apiServer, apiKey }) => {
   const [rowData, setRowData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchText, setSearchText] = useState("");
+  const [gridHeight, setGridHeight] = useState(window.innerHeight - 80); // Initial height
+  const containerRef = useRef(null);
+
+
+  const calculateHeight = () => {
+    if (containerRef.current) {
+      const offsetTop = containerRef.current.getBoundingClientRect().top;
+      const calculatedHeight = window.innerHeight - offsetTop - 110;
+      setGridHeight(Math.max(calculatedHeight, 400));
+    }
+  };
+
+  // Recalculate height on window resize
+  useEffect(() => {
+    calculateHeight();
+    const handleResize = () => calculateHeight();
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   const fetchData = async () => {
     try {
@@ -26,7 +51,6 @@ const EmailSenderGrid = ({ apiServer, apiKey }) => {
 
       if (result && result.data) {
         const updatedData = result.data.map((item) => ({
-          key:item.id,
           id: item.id,
           fromName: item.fromName || "N/A",
           fromEmail: item.fromEmail || "N/A",
@@ -50,140 +74,85 @@ const EmailSenderGrid = ({ apiServer, apiKey }) => {
 
   useEffect(() => {
     fetchData();
-
-    const handleSenderUpdate = (event) => {
-      console.log("EDGE_SENDER_UPDATED event received:", event.detail);
-      fetchData();
-    };
-
-    window.addEventListener("EDGE_SENDER_UPDATED", handleSenderUpdate);
-
-    return () => {
-      window.removeEventListener("EDGE_SENDER_UPDATED", handleSenderUpdate);
-    };
   }, [apiServer, apiKey]);
-
-  const handleEdit = async (sender) => {
-    try {
-      console.log("Sender object:", sender);
-
-      await window.EDGE_UTIL.senderAction({
-        actionCode: "EDIT_SENDER",
-        paramsObj: { sender: sender },
-      });
-    } catch (error) {
-      console.error("Error opening sender form for editing:", error);
-    }
-  };
-
-  const handleDelete = async (sender) => {
-    try {
-      console.log("Sender object:", sender);
-      await window.EDGE_UTIL.senderAction({
-        actionCode: "DELETE_SENDER",
-        paramsObj: { sender : sender },
-      });
-    } catch (error) {
-      console.error("Error deleting sender:", error);
-    }
-  };
 
   const handleSearch = (e) => {
     setSearchText(e.target.value);
   };
 
-  const filteredData = rowData.filter(
-    (item) =>
-      item.fromName.toLowerCase().includes(searchText.toLowerCase()) ||
-      item.fromEmail.toLowerCase().includes(searchText.toLowerCase())
+  const filteredData = useMemo(() => {
+    return rowData.filter(
+      (item) =>
+        item.fromName.toLowerCase().includes(searchText.toLowerCase()) ||
+        item.fromEmail.toLowerCase().includes(searchText.toLowerCase())
+    );
+  }, [rowData, searchText]);
+
+  const columnDefs = useMemo(
+    () => [
+      {
+        headerName: "#",
+        valueGetter: "node.rowIndex + 1",
+        maxWidth: 70,
+      },
+      {
+        headerName: "From Name",
+        field: "fromName",
+        flex: 1,
+      },
+      { headerName: "From Email", field: "fromEmail", flex: 1 },
+      { headerName: "Reply To", field: "replyTo", flex: 1 },
+      { headerName: "Created By", field: "createdBy", flex: 1 },
+      { headerName: "Created On", field: "createdOn", flex: 1 },
+      {
+        headerName: "Domain Verified",
+        field: "domainVerified",
+        cellRenderer: ({ value }) =>
+          value ? (
+            <span className="tag-verified">
+              <CheckCircleOutlined /> Verified
+            </span>
+          ) : (
+            <span className="tag-not-verified">
+              <CloseCircleOutlined /> Not Verified
+            </span>
+          ),
+        flex: 1,
+      },
+      {
+        headerName: "Verified",
+        field: "verified",
+        cellRenderer: ({ value }) =>
+          value ? (
+            <span className="tag-verified">
+              <CheckCircleOutlined /> Verified
+            </span>
+          ) : (
+            <span className="tag-not-verified">
+              <CloseCircleOutlined /> Not Verified
+            </span>
+          ),
+        flex: 1,
+      },
+      {
+        headerName: "Action",
+        cellRenderer: ({ data }) => (
+          <Button
+            size={"small"}
+            icon={<DeleteOutlined />}
+            danger
+          >
+            Delete
+          </Button>
+        ),
+        flex: 1,
+      },
+    ],
+    []
   );
 
-  const columns = [
-    {
-      title: "#",
-      dataIndex: "id",
-      key: "id",
-      render: (text, record, index) => index + 1,
-    },
-    {
-      title: "From Name",
-      dataIndex: "fromName",
-      key: "fromName",
-      render: (text, record) => (
-        <span
-          style={{ color: "blue", cursor: "pointer" }}
-          onClick={() => handleEdit(record)}
-        >
-          {text}
-        </span>
-      ),
-    },
-    {
-      title: "From Email",
-      dataIndex: "fromEmail",
-      key: "fromEmail",
-    },
-    {
-      title: "Reply To",
-      dataIndex: "replyTo",
-      key: "replyTo",
-    },
-    {
-      title: "Created By",
-      dataIndex: "createdBy",
-      key: "createdBy",
-    },
-    {
-      title: "Created On",
-      dataIndex: "createdOn",
-      key: "createdOn",
-    },
-    {
-      title: "Domain Verified",
-      dataIndex: "domainVerified",
-      key: "domainVerified",
-      render: (verified) =>
-        verified ? (
-          <Tag icon={<CheckCircleOutlined />} style={{borderRadius:'15px'}} color="#11a75c">
-            Verified
-          </Tag>
-        ) : (
-          <Tag icon={<CloseCircleOutlined />} style={{borderRadius:'15px'}} color="#ab0a00">
-            Not Verified
-          </Tag>
-        ),
-    },
-    {
-      title: "Verified",
-      dataIndex: "verified",
-      key: "verified",
-      render: (verified) =>
-        verified ? (
-          <Tag icon={<CheckCircleOutlined />} style={{borderRadius:'15px'}} color="#11a75c">Verified
-          </Tag>
-        ) : (
-          <Tag icon={<CloseCircleOutlined />} style={{borderRadius:'15px'}} color="#ab0a00">Not Verified
-          </Tag>
-        ),
-    },
-    {
-      title: "Action",
-      key: "action",
-      render: (text, record) => (
-        <Button
-          size={"small"}
-          icon={<DeleteOutlined />}
-          danger
-          onClick={() => handleDelete(record)}
-        >
-          Delete
-        </Button>
-      ),
-    },
-    ]
-
   return (
-    <div style={{ padding: "20px" }}>
+    <div ref={containerRef} style={{ padding: "20px", overflow: "hidden" }}>
       <div style={{ marginBottom: "20px" }}>
         <Search
           placeholder="Search..."
@@ -192,14 +161,19 @@ const EmailSenderGrid = ({ apiServer, apiKey }) => {
           style={{ width: 300 }}
         />
       </div>
-      <Table
-        bordered
-        columns={columns}
-        dataSource={filteredData}
-        loading={isLoading}
-        pagination={{ pageSize: 10 }}
-        rowClassName="table-row-light"
-      />
+      <div
+        className="ag-theme-quartz"
+        style={{
+          height: gridHeight,
+          width: "100%",
+        }}
+      >
+        <AgGridReact
+          rowData={filteredData}
+          columnDefs={columnDefs}
+          domLayout="autoHeight"
+        />
+      </div>
     </div>
   );
 };

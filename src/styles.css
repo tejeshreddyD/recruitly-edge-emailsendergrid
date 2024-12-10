@@ -50,3 +50,12 @@
 .table-row-dark {
     background-color: #f0f0f0;
 }
+.tag-verified {
+    color: green;
+    font-weight: bold;
+}
+
+.tag-not-verified {
+    color: red;
+    font-weight: bold;
+}
