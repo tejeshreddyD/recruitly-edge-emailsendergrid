@@ -1,14 +1,21 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import { AgGridReact } from "ag-grid-react";
+import debounce from "lodash/debounce";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-quartz.css";
+import { Button, Input } from "antd";
 import "./styles.css";
+
+const { Search } = Input;
 
 const EmailSenderGrid = ({ apiServer, apiKey }) => {
   const [rowData, setRowData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchText, setSearchText] = useState("");
+  const [gridHeight, setGridHeight] = useState(500);
+  const containerRef = useRef(null);
+
 
   const fetchData = async () => {
     try {
@@ -31,7 +38,9 @@ const EmailSenderGrid = ({ apiServer, apiKey }) => {
           fromEmail: item.fromEmail || "N/A",
           replyTo: item.replyToEmail || "N/A",
           createdBy: item.userName || "Unknown",
-          createdOn: item.createdOn ? new Date(item.createdOn).toLocaleDateString() : "N/A",
+          createdOn: item.createdOn
+            ? new Date(item.createdOn).toLocaleDateString()
+            : "N/A",
           domainVerified: item.domainVerified ?? false,
           verified: item.senderAuthorised ?? false,
         }));
@@ -47,6 +56,26 @@ const EmailSenderGrid = ({ apiServer, apiKey }) => {
     }
   };
 
+
+  const calculateHeight = () => {
+    if (containerRef.current) {
+      const offsetTop = containerRef.current.getBoundingClientRect().top;
+      const calculatedHeight = window.innerHeight - offsetTop - 110;
+      setGridHeight(Math.max(calculatedHeight, 400));
+    }
+  };
+
+  // Recalculate height on window resize
+  useEffect(() => {
+    calculateHeight();
+    const handleResize = () => calculateHeight();
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
+
   useEffect(() => {
     fetchData();
 
@@ -57,15 +86,20 @@ const EmailSenderGrid = ({ apiServer, apiKey }) => {
 
     window.addEventListener("EDGE_SENDER_UPDATED", handleSenderUpdate);
 
+    const debouncedUpdate = debounce(calculateHeight, 100);
+    calculateHeight();
+    window.addEventListener("resize", debouncedUpdate);
+
     return () => {
       window.removeEventListener("EDGE_SENDER_UPDATED", handleSenderUpdate);
+      window.removeEventListener("resize", debouncedUpdate);
     };
   }, [apiServer, apiKey]);
+
 
   const handleEdit = async (sender) => {
     try {
       console.log("Sender object:", sender);
-
       await window.EDGE_UTIL.senderAction({
         actionCode: "EDIT_SENDER",
         paramsObj: { sender: sender },
@@ -74,6 +108,7 @@ const EmailSenderGrid = ({ apiServer, apiKey }) => {
       console.error("Error opening sender form for editing:", error);
     }
   };
+
 
   const handleDelete = async (sender) => {
     try {
@@ -87,9 +122,11 @@ const EmailSenderGrid = ({ apiServer, apiKey }) => {
     }
   };
 
-  const handleSearch = (e) => {
-    setSearchText(e.target.value);
+
+  const onQuickFilterChange = (value) => {
+    setSearchText(value);
   };
+
 
   const filteredData = useMemo(() => {
     return rowData.filter(
@@ -98,6 +135,7 @@ const EmailSenderGrid = ({ apiServer, apiKey }) => {
         item.fromEmail.toLowerCase().includes(searchText.toLowerCase())
     );
   }, [rowData, searchText]);
+
 
   const columnDefs = useMemo(
     () => [
@@ -149,19 +187,9 @@ const EmailSenderGrid = ({ apiServer, apiKey }) => {
         flex: 1,
         cellRenderer: (params) => {
           return params.value ? (
-            <div className="ag-custom-tag verified">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                <path d="M9 16.2l-4.2-4.2-1.4 1.4 5.6 5.6 12-12-1.4-1.4z" />
-              </svg>
-              Verified
-            </div>
+            <div className="ag-custom-tag verified">Verified</div>
           ) : (
-            <div className="ag-custom-tag not-verified">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
-              </svg>
-              Not Verified
-            </div>
+            <div className="ag-custom-tag not-verified">Not Verified</div>
           );
         },
       },
@@ -171,23 +199,12 @@ const EmailSenderGrid = ({ apiServer, apiKey }) => {
         flex: 1,
         cellRenderer: (params) => {
           return params.value ? (
-            <div className="ag-custom-tag verified">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                <path d="M9 16.2l-4.2-4.2-1.4 1.4 5.6 5.6 12-12-1.4-1.4z" />
-              </svg>
-              Verified
-            </div>
+            <div className="ag-custom-tag verified">Verified</div>
           ) : (
-            <div className="ag-custom-tag not-verified">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
-              </svg>
-              Not Verified
-            </div>
+            <div className="ag-custom-tag not-verified">Not Verified</div>
           );
         },
       },
-
       {
         headerName: "Action",
         cellRenderer: (params) => (
@@ -205,29 +222,41 @@ const EmailSenderGrid = ({ apiServer, apiKey }) => {
   );
 
   return (
-    <div style={{ padding: "20px" }}>
-      <div style={{ marginBottom: "20px" }}>
-        <input
-          type="text"
-          placeholder="Search..."
-          value={searchText}
-          onChange={handleSearch}
-          style={{ width: "300px", padding: "5px" }}
-        />
-      </div>
+    <div ref={containerRef} style={{ height: "100vh", width: "100%" }}>
       <div
-        className="ag-theme-quartz"
-        style={{ height: "500px", width: "100%",overflow: "hidden"  }}
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          height: "100%",
+          width: "100%",
+        }}
       >
-        <AgGridReact
-          rowData={filteredData}
-          columnDefs={columnDefs}
-          defaultColDef={{ sortable: true,  resizable: true }}
-          rowHeight={50}
-          loadingOverlayComponentParams={{
-            loadingMessage: "Loading data...",
-          }}
-        />
+        <div
+          style={{ display: "flex", justifyContent: "space-between", padding: "15px" }}
+        >
+          <Search
+            size={"middle"}
+            placeholder="Search..."
+            allowClear
+            onSearch={onQuickFilterChange}
+            style={{ width: "250px" }}
+          />
+        </div>
+        <div style={{ flex: 1, overflow: "hidden" }}>
+          <div
+            style={{ height: gridHeight, width: "100%" }}
+            className="ag-theme-quartz"
+          >
+            <AgGridReact
+              ref={containerRef}
+              rowData={filteredData}
+              columnDefs={columnDefs}
+              defaultColDef={{ sortable: true, resizable: true }}
+              rowHeight={50}
+              loading={isLoading}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );
