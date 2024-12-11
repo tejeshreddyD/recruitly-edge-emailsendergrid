@@ -2,12 +2,19 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import { AgGridReact } from "ag-grid-react";
 import debounce from "lodash/debounce";
-import "ag-grid-community/styles/ag-grid.css";
-import "ag-grid-community/styles/ag-theme-quartz.css";
-import { Button, Input } from "antd";
 import "./styles.css";
+import { RECRUITLY_AGGRID_LICENSE, RECRUITLY_AGGRID_THEME } from "@constants";
+import { CheckCircleOutlined, CloseCircleOutlined } from "@ant-design/icons";
+import { Tag } from "antd";
+import { LicenseManager } from "ag-grid-enterprise";
+import { Button, Input } from "antd";
+import { DeleteOutlined } from "@ant-design/icons";
+
+
 
 const { Search } = Input;
+
+LicenseManager.setLicenseKey(RECRUITLY_AGGRID_LICENSE);
 
 const EmailSenderGrid = ({ apiServer, apiKey }) => {
   const [rowData, setRowData] = useState([]);
@@ -15,6 +22,7 @@ const EmailSenderGrid = ({ apiServer, apiKey }) => {
   const [searchText, setSearchText] = useState("");
   const [gridHeight, setGridHeight] = useState(500);
   const containerRef = useRef(null);
+  const gridRef = useRef(null);
 
 
   const fetchData = async () => {
@@ -60,20 +68,25 @@ const EmailSenderGrid = ({ apiServer, apiKey }) => {
   const calculateHeight = () => {
     if (containerRef.current) {
       const offsetTop = containerRef.current.getBoundingClientRect().top;
-      const calculatedHeight = window.innerHeight - offsetTop - 110;
-      setGridHeight(Math.max(calculatedHeight, 400));
+      const grid_actual_height = containerRef.current.clientHeight;
+      const calculated_height = window.innerHeight - offsetTop - 110;
+      if(calculated_height > grid_actual_height){
+        setGridHeight(grid_actual_height);
+      }else {
+        setGridHeight(calculated_height);
+      }
     }
   };
 
-  // Recalculate height on window resize
   useEffect(() => {
-    calculateHeight();
-    const handleResize = () => calculateHeight();
-    window.addEventListener("resize", handleResize);
+    const debouncedUpdate = debounce(calculateHeight, 100);
+    debouncedUpdate();
+    window.addEventListener("resize", debouncedUpdate);
     return () => {
-      window.removeEventListener("resize", handleResize);
+      window.removeEventListener("resize", debouncedUpdate);
     };
   }, []);
+
 
 
   useEffect(() => {
@@ -144,11 +157,16 @@ const EmailSenderGrid = ({ apiServer, apiKey }) => {
         valueGetter: "node.rowIndex + 1",
         flex: 1,
         sortable: false,
-        width: 60,
+        pinned:'left',
+        resizable:false,
+        suppressMenu: true,
+        width: 50,
+
       },
       {
         headerName: "From Name",
         field: "fromName",
+        suppressMenu: true,
         flex: 1,
         cellRenderer: (params) => {
           return (
@@ -164,32 +182,42 @@ const EmailSenderGrid = ({ apiServer, apiKey }) => {
       {
         headerName: "From Email",
         field: "fromEmail",
+        suppressMenu: true,
         flex: 1,
       },
       {
         headerName: "Reply To",
         field: "replyTo",
+        suppressMenu: true,
         flex: 1,
       },
       {
         headerName: "Created By",
         field: "createdBy",
+        suppressMenu: true,
         flex: 1,
       },
       {
         headerName: "Created On",
         field: "createdOn",
+        suppressMenu: true,
         flex: 1,
       },
       {
         headerName: "Domain Verified",
         field: "domainVerified",
+        sortable: false,
+        suppressMenu: true,
         flex: 1,
         cellRenderer: (params) => {
           return params.value ? (
-            <div className="ag-custom-tag verified">Verified</div>
+            <Tag style={{borderRadius:'15px'}} color="#11a75c" icon={<CheckCircleOutlined />}>
+              Verified
+            </Tag>
           ) : (
-            <div className="ag-custom-tag not-verified">Not Verified</div>
+            <Tag style={{borderRadius:'15px'}} color="#ab0a00" icon={<CloseCircleOutlined />}>
+              Not Verified
+            </Tag>
           );
         },
       },
@@ -197,32 +225,47 @@ const EmailSenderGrid = ({ apiServer, apiKey }) => {
         headerName: "Verified",
         field: "verified",
         flex: 1,
+        suppressMenu: true,
+        sortable: false,
         cellRenderer: (params) => {
           return params.value ? (
-            <div className="ag-custom-tag verified">Verified</div>
+            <Tag style={{borderRadius:'15px'}} color="#11a75c" icon={<CheckCircleOutlined />}>
+              Verified
+            </Tag>
           ) : (
-            <div className="ag-custom-tag not-verified">Not Verified</div>
+            <Tag style={{borderRadius:'15px'}} color="#ab0a00" icon={<CloseCircleOutlined />}>
+              Not Verified
+            </Tag>
           );
         },
       },
+
       {
         headerName: "Action",
         cellRenderer: (params) => (
-          <button
-            className="delete-button"
+          <Button style={{alignItems:'center',alignContent:'center'}}
+            type={"default"}
+            danger
+            ghost
+            icon={<DeleteOutlined />}
             onClick={() => handleDelete(params.data)}
           >
             Delete
-          </button>
+          </Button>
         ),
+        pinned: 'right',
+        resizable: false,
+        sortable: false,
+        suppressMenu: true,
         width: 120,
       },
+
     ],
     []
   );
 
   return (
-    <div ref={containerRef} style={{ height: "100vh", width: "100%" }}>
+    <div style={{ height: "100vh", width: "100%"}}>
       <div
         style={{
           display: "flex",
@@ -232,7 +275,7 @@ const EmailSenderGrid = ({ apiServer, apiKey }) => {
         }}
       >
         <div
-          style={{ display: "flex", justifyContent: "space-between", padding: "15px" }}
+          style={{ display: "flex", justifyContent: "space-between",paddingLeft:'15px',paddingRight:'15px',paddingTop:'15px'}}
         >
           <Search
             size={"middle"}
@@ -242,25 +285,26 @@ const EmailSenderGrid = ({ apiServer, apiKey }) => {
             style={{ width: "250px" }}
           />
         </div>
-        <div style={{ flex: 1, overflow: "hidden" }}>
-          <div
-            style={{ height: gridHeight, width: "100%" }}
-            className="ag-theme-quartz"
-          >
-            <AgGridReact
-              ref={containerRef}
-              rowData={filteredData}
-              columnDefs={columnDefs}
-              defaultColDef={{ sortable: true, resizable: true }}
-              rowHeight={50}
-              loading={isLoading}
-            />
-          </div>
+        <div ref={containerRef} style={{ height: gridHeight, width: "100%",padding:'15px' }}
+             className="ag-theme-quartz"
+        >
+          <AgGridReact
+            theme={RECRUITLY_AGGRID_THEME}
+            ref={gridRef}
+            rowData={filteredData}
+            columnDefs={columnDefs}
+            defaultColDef={{ sortable: true, resizable: true }}
+            rowHeight={50}
+            loading={isLoading}
+            suppressContextMenu={true}
+
+          />
         </div>
       </div>
     </div>
   );
 };
+
 
 EmailSenderGrid.propTypes = {
   apiServer: PropTypes.string.isRequired,
