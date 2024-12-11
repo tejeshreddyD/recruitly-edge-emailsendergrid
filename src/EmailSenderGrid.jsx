@@ -68,13 +68,9 @@ const EmailSenderGrid = ({ apiServer, apiKey }) => {
   const calculateHeight = () => {
     if (containerRef.current) {
       const offsetTop = containerRef.current.getBoundingClientRect().top;
-      const grid_actual_height = containerRef.current.clientHeight;
       const calculated_height = window.innerHeight - offsetTop - 110;
-      if(calculated_height > grid_actual_height){
-        setGridHeight(grid_actual_height);
-      }else {
-        setGridHeight(calculated_height);
-      }
+
+      setGridHeight(calculated_height);
     }
   };
 
@@ -161,6 +157,8 @@ const EmailSenderGrid = ({ apiServer, apiKey }) => {
         resizable:false,
         suppressMenu: true,
         width: 50,
+        minWidth: 50
+
 
       },
       {
@@ -168,6 +166,8 @@ const EmailSenderGrid = ({ apiServer, apiKey }) => {
         field: "fromName",
         suppressMenu: true,
         flex: 1,
+        width: 150,
+        minWidth: 200,
         cellRenderer: (params) => {
           return (
             <span
@@ -184,24 +184,32 @@ const EmailSenderGrid = ({ apiServer, apiKey }) => {
         field: "fromEmail",
         suppressMenu: true,
         flex: 1,
+        width: 200,
+        minWidth: 200,
       },
       {
         headerName: "Reply To",
         field: "replyTo",
         suppressMenu: true,
         flex: 1,
+        width: 200,
+        minWidth: 200,
       },
       {
         headerName: "Created By",
         field: "createdBy",
         suppressMenu: true,
         flex: 1,
+        width: 150,
+        minWidth: 200,
       },
       {
         headerName: "Created On",
         field: "createdOn",
         suppressMenu: true,
         flex: 1,
+        width: 150,
+        minWidth: 200,
       },
       {
         headerName: "Domain Verified",
@@ -209,6 +217,8 @@ const EmailSenderGrid = ({ apiServer, apiKey }) => {
         sortable: false,
         suppressMenu: true,
         flex: 1,
+        width: 150,
+        minWidth: 200,
         cellRenderer: (params) => {
           return params.value ? (
             <Tag style={{borderRadius:'15px'}} color="#11a75c" icon={<CheckCircleOutlined />}>
@@ -225,6 +235,8 @@ const EmailSenderGrid = ({ apiServer, apiKey }) => {
         headerName: "Verified",
         field: "verified",
         flex: 1,
+        width: 150,
+        minWidth: 200,
         suppressMenu: true,
         sortable: false,
         cellRenderer: (params) => {
@@ -243,22 +255,34 @@ const EmailSenderGrid = ({ apiServer, apiKey }) => {
       {
         headerName: "Action",
         cellRenderer: (params) => (
-          <Button style={{alignItems:'center',alignContent:'center'}}
-            type={"default"}
-            danger
-            ghost
-            icon={<DeleteOutlined />}
-            onClick={() => handleDelete(params.data)}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              height: "100%",
+            }}
           >
-            Delete
-          </Button>
+            <Button
+              type="default"
+              size="small"
+              danger
+              ghost
+              icon={<DeleteOutlined style={{ fontSize: "12px" }} />}
+              onClick={() => handleDelete(params.data)}
+            >
+              Delete
+            </Button>
+          </div>
         ),
-        pinned: 'right',
+        pinned: "right",
         resizable: false,
         sortable: false,
         suppressMenu: true,
         width: 120,
+        minWidth: 120,
       },
+
 
     ],
     []
@@ -272,6 +296,7 @@ const EmailSenderGrid = ({ apiServer, apiKey }) => {
           flexDirection: "column",
           height: "100%",
           width: "100%",
+
         }}
       >
         <div
@@ -295,8 +320,10 @@ const EmailSenderGrid = ({ apiServer, apiKey }) => {
             columnDefs={columnDefs}
             defaultColDef={{ sortable: true, resizable: true }}
             rowHeight={50}
+            enableColumnMove={false}
             loading={isLoading}
             suppressContextMenu={true}
+
 
           />
         </div>
